@@ -1,0 +1,10 @@
+spring:
+  datasource:
+    username: root
+    password: root
+    url: jdbc:mysql://119.3.106.10:3306/wangk?useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Shanghai
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  mvc:
+    static-path-pattern: /static/**
+server:
+  port: 8082
