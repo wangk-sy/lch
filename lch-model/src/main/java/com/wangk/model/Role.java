@@ -1,8 +1,12 @@
 package com.wangk.model;
 
+import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableField;
+import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 
 import java.io.Serializable;
+import java.util.List;
 
 /**
  * @ClassName :Role
@@ -14,10 +18,24 @@ import java.io.Serializable;
 @TableName("Role")
 public class Role implements Serializable {
     private static final long serialVersionUID = 6183859181958112451L;
+    @TableId(value = "id",type = IdType.AUTO)
     private Integer id;
+    @TableField("name")
     private String name;
+    @TableField("roleLevel")
     private Integer roleLevel;
+    @TableField("description")
     private String description;
+    @TableField(exist = false)
+    private List<Permission> permis;
+
+    public List<Permission> getPermis() {
+        return permis;
+    }
+
+    public void setPermis(List<Permission> permis) {
+        this.permis = permis;
+    }
 
     public Integer getId() {
         return id;
