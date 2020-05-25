@@ -44,13 +44,15 @@ public class LoginController {
         String userName= loginData.get("username");
         String password = loginData.get("password");
         UsernamePasswordToken usernamePasswordToken = new UsernamePasswordToken(userName, password, ShiroRealm.class.getName());
+        Result result=null;
         try {
             SecurityUtils.getSubject().login(usernamePasswordToken);
+            result= ResultGenerator.getSuccessInfo();
         }catch (Exception e) {
             e.printStackTrace();
+            result = ResultGenerator.getFailureInfo("登录失败");
         }
-
-        return ResultGenerator.getSuccessInfo();
+        return result;
     }
 
     @GetMapping("/verifyCode")

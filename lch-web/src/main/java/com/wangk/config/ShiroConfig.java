@@ -1,5 +1,7 @@
 package com.wangk.config;
 
+import com.wangk.filter.LoginFilter;
+import com.wangk.filter.MyRolesAuthorizationFilter;
 import org.apache.shiro.authc.credential.HashedCredentialsMatcher;
 import org.apache.shiro.mgt.DefaultSecurityManager;
 import org.apache.shiro.spring.LifecycleBeanPostProcessor;
@@ -11,6 +13,10 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.DependsOn;
+
+import javax.servlet.Filter;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 /**
  * @ClassName :ShiroConfig
@@ -66,8 +72,17 @@ public class ShiroConfig {
         ShiroFilterFactoryBean shiroFilterFactoryBean = new ShiroFilterFactoryBean();
 
         shiroFilterFactoryBean.setSecurityManager(securityManager());
+        Map<String, Filter> filters = new LinkedHashMap<String, Filter>();
 
-
+        filters.put("authc",new LoginFilter());
+        filters.put("roles",new MyRolesAuthorizationFilter());
+        shiroFilterFactoryBean.setFilters(filters);
+        Map<String, String> filterChainDefinitionManager = new LinkedHashMap<String, String>();
+        filterChainDefinitionManager.put("/logout", "logout");
+        filterChainDefinitionManager.put("/login", "anon");
+        filterChainDefinitionManager.put("/verifyCode","anon");
+        filterChainDefinitionManager.put("/**","authc");
+        shiroFilterFactoryBean.setFilterChainDefinitionMap(filterChainDefinitionManager);
         return shiroFilterFactoryBean;
     }
     /**

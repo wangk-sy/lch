@@ -7,6 +7,7 @@ import com.wangk.core.Result;
 import com.wangk.core.ResultGenerator;
 import com.wangk.model.LchHtmlInfo;
 import com.wangk.service.LchService;
+import org.apache.shiro.authz.annotation.RequiresRoles;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -34,6 +35,7 @@ public class LchController {
     }
 
     @RequestMapping("/page")
+//    @RequiresRoles("admin")
     public Result getAllUrl(@RequestParam(defaultValue = "1") Integer page, @RequestParam(defaultValue = "10") Integer size) {
         IPage<LchHtmlInfo> iPage = new Page<>(page, size);
         IPage<LchHtmlInfo> pageInfo = service.page(iPage);
