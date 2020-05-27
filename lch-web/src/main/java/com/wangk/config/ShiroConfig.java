@@ -25,7 +25,7 @@ import java.util.Map;
  * @Date :2020/5/7 9:37
  * @Version :1.0
  **/
-@Configuration
+//@Configuration
 public class ShiroConfig {
 
     @Bean("lifecycleBeanPostProcessor")

@@ -1,9 +1,12 @@
 package com.wangk.service.LchServiceImpl;
 
 import com.baomidou.mybatisplus.core.conditions.Wrapper;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.wangk.mapper.HtmlTypeMapper;
 import com.wangk.mapper.LchMapper;
+import com.wangk.model.HtmlType;
 import com.wangk.model.LchHtmlInfo;
 import com.wangk.service.LchService;
 import org.apache.poi.ss.usermodel.Cell;
@@ -33,6 +36,8 @@ public class LchServiceImpl implements LchService {
 
     @Autowired
     LchMapper mapper;
+    @Autowired
+    HtmlTypeMapper htmlTypeMapper;
 
     @Override
     public int importData(MultipartFile file) {
@@ -54,6 +59,15 @@ public class LchServiceImpl implements LchService {
                         continue;//防止数据中间有空行
                     }
                     LchHtmlInfo lchHtmlInfo = new LchHtmlInfo();
+                    QueryWrapper<HtmlType> queryWrapper = new QueryWrapper<>();
+                    queryWrapper.eq("name",sheet.getSheetName());
+                    HtmlType htmlType = htmlTypeMapper.selectOne(queryWrapper);
+                    if (htmlType==null){
+                        htmlType=new HtmlType();
+                        htmlType.setName(sheet.getSheetName());
+                        htmlTypeMapper.insert(htmlType);
+                    }
+                    lchHtmlInfo.setTypeId(htmlType.getId());
                     //获取列数
                     int physicalNumberOfCells = row.getPhysicalNumberOfCells();
                     for (int k = 0; k <physicalNumberOfCells ; k++) {
@@ -113,6 +127,10 @@ public class LchServiceImpl implements LchService {
 
     @Override
     public boolean remove(Wrapper<LchHtmlInfo> queryWrapper) {
+        int delete = mapper.delete(queryWrapper);
+        if (delete==1){
+            return true;
+        }
         return false;
     }
 
@@ -178,7 +196,8 @@ public class LchServiceImpl implements LchService {
 
     @Override
     public List<LchHtmlInfo> list(Wrapper<LchHtmlInfo> queryWrapper) {
-        return null;
+
+        return mapper.selectList(queryWrapper);
     }
 
     @Override

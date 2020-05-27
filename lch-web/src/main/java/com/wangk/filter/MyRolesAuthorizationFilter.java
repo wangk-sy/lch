@@ -1,5 +1,6 @@
 package com.wangk.filter;
 
+import com.alibaba.fastjson.JSONObject;
 import com.wangk.core.ResultGenerator;
 import org.apache.shiro.web.filter.authz.RolesAuthorizationFilter;
 
@@ -19,7 +20,10 @@ public class MyRolesAuthorizationFilter extends RolesAuthorizationFilter  {
     @Override
     protected boolean onAccessDenied(ServletRequest request, ServletResponse response) throws IOException {
         HttpServletResponse res = (HttpServletResponse)response;
-        res.getWriter().write(ResultGenerator.getFailureInfo("尚未登录").toString());
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("code",401);
+        jsonObject.put("msg","权限不足");
+        res.getWriter().write(jsonObject.toJSONString());
         return false;
     }
 }

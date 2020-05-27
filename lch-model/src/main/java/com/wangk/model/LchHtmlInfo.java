@@ -24,6 +24,16 @@ public class LchHtmlInfo implements Serializable {
     private String name;
     @TableField("url")
     private String url;
+    @TableField("typeId")
+    private Integer typeId;
+
+    public Integer getTypeId() {
+        return typeId;
+    }
+
+    public void setTypeId(Integer typeId) {
+        this.typeId = typeId;
+    }
 
     public Integer getId() {
         return id;

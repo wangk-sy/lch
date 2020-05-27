@@ -1,5 +1,6 @@
 package com.wangk.filter;
 
+import com.alibaba.fastjson.JSONObject;
 import com.wangk.core.Result;
 import com.wangk.core.ResultGenerator;
 import org.apache.shiro.web.filter.authc.FormAuthenticationFilter;
@@ -20,8 +21,10 @@ public class LoginFilter extends FormAuthenticationFilter {
     protected boolean onAccessDenied(ServletRequest request, ServletResponse response) throws Exception {
         HttpServletResponse res = (HttpServletResponse)response;
         res.setContentType("application/json;charset=utf-8");
-        Result result = ResultGenerator.getFailureInfo("尚未登录");
-        res.getWriter().write(result.toString());
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("code",401);
+        jsonObject.put("msg","尚未登录");
+        res.getWriter().write(jsonObject.toJSONString());
         return false;
     }
 }
