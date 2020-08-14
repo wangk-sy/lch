@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import java.io.Serializable;
 import java.util.List;
@@ -26,10 +27,71 @@ public class User implements Serializable {
     private String username;
     @TableField("password")
     private String password;
+    @TableField("address")
+    private String address;
+    @TableField("email")
+    private String email;
+    @TableField("phone")
+    private String phone;
+    @TableField("deptName")
+    private String deptName;
+    @TableField("userface")
+    private String userface;
+    @TableField("nickname")
+    private String nickname;
+
+    public String getNickname() {
+        return nickname;
+    }
+
+    public void setNickname(String nickname) {
+        this.nickname = nickname;
+    }
+
+    public String getUserface() {
+        return userface;
+    }
+
+    public void setUserface(String userface) {
+        this.userface = userface;
+    }
+
+    public String getAddress() {
+        return address;
+    }
+
+    public void setAddress(String address) {
+        this.address = address;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public String getPhone() {
+        return phone;
+    }
+
+    public void setPhone(String phone) {
+        this.phone = phone;
+    }
+
+    public String getDeptName() {
+        return deptName;
+    }
+
+    public void setDeptName(String deptName) {
+        this.deptName = deptName;
+    }
 
     @TableField(exist = false)
-    private List<Role> roles;
 
+    private List<Role> roles;
+    @JsonIgnore
     public List<Role> getRoles() {
         return roles;
     }

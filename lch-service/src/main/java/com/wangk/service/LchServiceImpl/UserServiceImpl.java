@@ -30,6 +30,10 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public boolean save(User entity) {
+        int insert = userMapper.insert(entity);
+        if (insert == 1) {
+            return true;
+        }
         return false;
     }
 
@@ -45,6 +49,10 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public boolean removeById(Serializable id) {
+        int result = userMapper.deleteById(id);
+        if (result == 1) {
+            return true;
+        }
         return false;
     }
 
@@ -65,12 +73,16 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public boolean updateById(User entity) {
+        int result = userMapper.updateById(entity);
+        if (result == 1){
+            return true;
+        }
         return false;
     }
 
     @Override
     public boolean update(User entity, Wrapper<User> updateWrapper) {
-        return false;
+        return userMapper.update(entity, updateWrapper)==1;
     }
 
     @Override
@@ -120,7 +132,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public List<User> list(Wrapper<User> queryWrapper) {
-        return null;
+        return userMapper.selectList(null);
     }
 
     @Override

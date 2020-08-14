@@ -1,9 +1,17 @@
 package com.wangk.config;
 
+import com.wangk.filter.JwtFilter;
 import com.wangk.filter.LoginFilter;
 import com.wangk.filter.MyRolesAuthorizationFilter;
+import org.apache.shiro.authc.Authenticator;
 import org.apache.shiro.authc.credential.HashedCredentialsMatcher;
+import org.apache.shiro.authc.pam.AtLeastOneSuccessfulStrategy;
+import org.apache.shiro.authc.pam.FirstSuccessfulStrategy;
+import org.apache.shiro.authc.pam.ModularRealmAuthenticator;
 import org.apache.shiro.mgt.DefaultSecurityManager;
+import org.apache.shiro.mgt.DefaultSessionStorageEvaluator;
+import org.apache.shiro.mgt.DefaultSubjectDAO;
+import org.apache.shiro.realm.Realm;
 import org.apache.shiro.spring.LifecycleBeanPostProcessor;
 import org.apache.shiro.spring.security.interceptor.AuthorizationAttributeSourceAdvisor;
 import org.apache.shiro.spring.web.ShiroFilterFactoryBean;
@@ -15,8 +23,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.DependsOn;
 
 import javax.servlet.Filter;
-import java.util.LinkedHashMap;
-import java.util.Map;
+import java.util.*;
 
 /**
  * @ClassName :ShiroConfig
@@ -25,12 +32,33 @@ import java.util.Map;
  * @Date :2020/5/7 9:37
  * @Version :1.0
  **/
-//@Configuration
+@Configuration
 public class ShiroConfig {
 
     @Bean("lifecycleBeanPostProcessor")
     public LifecycleBeanPostProcessor lifecycleBeanPostProcessor(){
         return new LifecycleBeanPostProcessor();
+    }
+
+    /**
+     * 初始化Authenticator验证管理器，如不注入，则会导致验证失败返回未登录
+     * Authorizer授权器：赋予主体有哪些权限
+     */
+    @Bean
+    public Authenticator authenticator() {
+        //扩展父类原方法，捕获原始异常
+        ModularRealmAuthenticator authenticator = new MyModularRealmAuthenticator();
+        //设置两个Realm，一个用于用户登录验证和访问权限获取；一个用于jwt token的认证
+        authenticator.setRealms(Arrays.asList(shiroRealm(), loginRealm()));
+        /**
+         FirstSuccessfulStrategy：只要有一个 Realm 验证成功即可，只返回第一个 Realm 身份验证成功的认证信息，其他的忽略；
+         AtLeastOneSuccessfulStrategy：只要有一个 Realm 验证成功即可，和FirstSuccessfulStrategy 不同，返回所有 Realm 身份验证成功的认证信息；（默认）
+         AllSuccessfulStrategy：所有 Realm 验证成功才算成功，且返回所有 Realm
+         身份验证成功的认证信息，如果有一个失败就失败了。
+         */
+        //设置多个realm认证策略，一个成功即跳过其它的
+        authenticator.setAuthenticationStrategy(new AtLeastOneSuccessfulStrategy());
+        return authenticator;
     }
 
     @Bean
@@ -49,10 +77,16 @@ public class ShiroConfig {
     @DependsOn("lifecycleBeanPostProcessor")
     public ShiroRealm shiroRealm() {
         ShiroRealm shiroRealm = new ShiroRealm();
-        shiroRealm.setCredentialsMatcher(hashedCredentialsMatcher());
+//        shiroRealm.setCredentialsMatcher(hashedCredentialsMatcher());
         return shiroRealm;
     }
-
+    @Bean(name="loginRealm")
+    @DependsOn("lifecycleBeanPostProcessor")
+    public LoginRealm loginRealm() {
+        LoginRealm loginRealm = new LoginRealm();
+        loginRealm.setCredentialsMatcher(hashedCredentialsMatcher());
+        return loginRealm;
+    }
     /**
      * SecurityManager，权限管理，这个类组合了登陆，登出，权限，session的处理，是个比较重要的类。
      * //
@@ -60,7 +94,18 @@ public class ShiroConfig {
     @Bean("securityManager")
     public DefaultSecurityManager securityManager(){
         DefaultWebSecurityManager securityManager = new DefaultWebSecurityManager();
-        securityManager.setRealm(shiroRealm());
+        //设置自定义realm
+        Set<Realm> realms = new HashSet<Realm>();
+        realms.add(shiroRealm());
+        realms.add(loginRealm());
+        securityManager.setRealms(realms);
+        //关闭shiro自带的session
+        DefaultSubjectDAO subjectDAO = new DefaultSubjectDAO();
+        DefaultSessionStorageEvaluator sessionStorageEvaluator = new DefaultSessionStorageEvaluator();
+        sessionStorageEvaluator.setSessionStorageEnabled(false);
+        subjectDAO.setSessionStorageEvaluator(sessionStorageEvaluator);
+        securityManager.setSubjectDAO(subjectDAO);
+        securityManager.setAuthenticator(authenticator());
         return securityManager;
     }
     /**
@@ -74,14 +119,16 @@ public class ShiroConfig {
         shiroFilterFactoryBean.setSecurityManager(securityManager());
         Map<String, Filter> filters = new LinkedHashMap<String, Filter>();
 
+        filters.put("jwtFilter",new JwtFilter());
         filters.put("authc",new LoginFilter());
         filters.put("roles",new MyRolesAuthorizationFilter());
         shiroFilterFactoryBean.setFilters(filters);
         Map<String, String> filterChainDefinitionManager = new LinkedHashMap<String, String>();
-        filterChainDefinitionManager.put("/logout", "logout");
+        filterChainDefinitionManager.put("/logout", "anon");
         filterChainDefinitionManager.put("/login", "anon");
         filterChainDefinitionManager.put("/verifyCode","anon");
-        filterChainDefinitionManager.put("/**","authc");
+        filterChainDefinitionManager.put("/user/viewImg","anon");
+        filterChainDefinitionManager.put("/**","jwtFilter");
         shiroFilterFactoryBean.setFilterChainDefinitionMap(filterChainDefinitionManager);
         return shiroFilterFactoryBean;
     }

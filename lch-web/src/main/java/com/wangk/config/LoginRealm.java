@@ -11,10 +11,7 @@ import com.wangk.utils.JwtUtils;
 import com.wangk.utils.RedisUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.shiro.SecurityUtils;
-import org.apache.shiro.authc.AuthenticationException;
-import org.apache.shiro.authc.AuthenticationInfo;
-import org.apache.shiro.authc.AuthenticationToken;
-import org.apache.shiro.authc.SimpleAuthenticationInfo;
+import org.apache.shiro.authc.*;
 import org.apache.shiro.authz.AuthorizationInfo;
 import org.apache.shiro.authz.SimpleAuthorizationInfo;
 import org.apache.shiro.realm.AuthorizingRealm;
@@ -31,19 +28,16 @@ import java.util.List;
  * @Date :2020/5/12 10:11
  * @Version :1.0
  **/
-public class ShiroRealm extends AuthorizingRealm {
+public class LoginRealm extends AuthorizingRealm {
 
     @Autowired
     private UserService userService;
 
     @Autowired
     private RedisUtils redisUtils;
-    /**
-     * 大坑，必须重写此方法，不然Shiro会报错
-     */
     @Override
     public boolean supports(AuthenticationToken token) {
-        return token instanceof JwtToken;
+        return token instanceof UsernamePasswordToken;
     }
     @Override
     protected AuthorizationInfo doGetAuthorizationInfo(PrincipalCollection principals) {
@@ -69,27 +63,14 @@ public class ShiroRealm extends AuthorizingRealm {
 
     @Override
     protected AuthenticationInfo doGetAuthenticationInfo(AuthenticationToken auth) throws AuthenticationException {
-        String token = (String) auth.getCredentials();
-        if (StringUtils.isBlank(token)) {
-            throw new AuthenticationException("token cannot be empty.");
-        }
-        String username = JwtUtils.getClaim(token,"username");
+        String username = (String) auth.getPrincipal();
         QueryWrapper<User> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("username",username);
         User user = userService.getOne(queryWrapper);
         ByteSource salt = ByteSource.Util.bytes("wangk");
-        boolean verify = JwtUtils.verify(token,"username");
-        boolean hasKey = redisUtils.hasKey(RedisConstant.PREFIX_SHIRO_REFRESH_TOKEN + username);
-        if (verify&&hasKey){
-            String currentTimeMillisRedis = redisUtils.get(RedisConstant.PREFIX_SHIRO_REFRESH_TOKEN+username).toString();
-            if (JwtUtils.getClaim(token,"currentTimeMillis").equals(currentTimeMillisRedis)){
-                String realmName = this.getName();
-                return new SimpleAuthenticationInfo(token,token,realmName);
-            }
-        }
         if (user == null) {
             throw new AuthenticationException("用户不存在");
         }
-        throw new AuthenticationException("token expired or incorrect.");
+        return new SimpleAuthenticationInfo(username,user.getPassword(),salt,getName());
     }
 }

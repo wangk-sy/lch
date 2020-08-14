@@ -3,14 +3,18 @@ import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.apache.shiro.crypto.hash.SimpleHash;
+import org.apache.shiro.util.ByteSource;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.elasticsearch.core.ElasticsearchTemplate;
 import org.springframework.test.context.junit4.SpringRunner;
+import utils.JwtUtils;
 
-import java.io.FileInputStream;
-import	java.io.FileOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
 
 /**
  * @ClassName :test
@@ -52,4 +56,27 @@ public class test {
             e.printStackTrace();
         }
     }
+
+    @Test
+    public void hash() {
+        //加密方式
+        String hashAlgorithmName = "MD5";
+        //加密次数
+        int hashInteractions = 2;
+
+        ByteSource salt = ByteSource.Util.bytes("wangk");
+
+        //原密码
+        String pwd = "123456";
+        String simpleHash = new SimpleHash(hashAlgorithmName, pwd, salt,hashInteractions).toHex();
+        System.out.println(simpleHash);//7bda22baa2d55a0a380e8ff45df9e038
+
+    }
+
+    @Test
+    public void jwt() {
+        String wangk = JwtUtils.createToekn("wangk", System.currentTimeMillis() + "");
+    }
+
+
 }

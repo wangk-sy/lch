@@ -3,6 +3,7 @@ package com.wangk;
 import org.mybatis.spring.annotation.MapperScan;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.ComponentScan;
 
 /**
@@ -14,8 +15,10 @@ import org.springframework.context.annotation.ComponentScan;
  **/
 @SpringBootApplication
 @MapperScan("com.wangk.mapper")
+@EnableConfigurationProperties
 public class LchApplication {
     public static void main(String[] args) {
+        System.setProperty("es.set.netty.runtime.available.processors", "false");
         SpringApplication.run(LchApplication.class,args);
     }
 }
